@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Shot {
+  id         Int      @id @default(autoincrement())
+
+  playerId   Int  
+  gameId     Int  
+
+  x          Float
+  y          Float
+  made       Boolean
+  quarter    Int
+  timeStamp String
+
+  player   Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model Player {
+  id         Int     @id @default(autoincrement())
+  externalId Int  @unique
+  firstName  String
+  lastName   String
+  position   String
+  team       String
+  isActive   Boolean @default(true)
+  updatedAt  DateTime @updatedAt
+
+  shots     Shot[]
+}
+
+model Team {
+  id            Int     @id @default(autoincrement())
+  externalId    Int  @unique
+  name          String  
+  abbreviation  String
+
+  gamesHome  Game[] @relation("HomeTeam")
+  gamesAway  Game[] @relation("AwayTeam")
+}
+
+
+
+model Game {
+  id          Int     @id @default(autoincrement())
+  externalId  Int  @unique
+  season      String
+  gameType    String
+  gameDate    DateTime
+
+  homeTeamId  Int
+  awayTeamId  Int
+  
+  homeTeam    Team @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  
+  shots Shot[]
+
+  createdAt DateTime @default(now())
+}
